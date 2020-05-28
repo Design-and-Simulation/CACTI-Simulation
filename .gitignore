@@ -1,0 +1,24 @@
+# files
+*.txt
+*.fig
+*.asv
+*.vscode
+*.mat
+*.zip
+*.rar
+*.pyc
+
+/result/*
+
+
+
+
+# dirs
+_trash/
+_release/
+__pycache__/
+/tmp/
+
+# keep
+!.gitkeep
+

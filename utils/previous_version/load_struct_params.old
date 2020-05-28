@@ -1,0 +1,89 @@
+function params = load_struct_params(path)
+%LOAD_STRUCT_PARAMS: load struct type optical system parameters
+%   input:
+%   - non-input: using default parameters
+%   - path: parameter loading path, str
+%   output:
+%   - params: struct type parameters
+%   note:
+%   - this function is not recommended, as it can only deal with struct data. 
+%     And it can be substituted with "gen_params()" and "load()"
+if nargin ~= 0
+% load params from file
+    params = load(path);
+else
+    % use default parameter settings
+    % objective
+    params.obj_pos = -5;           % objective distance -50 mm
+    params.obj_size = [200,200]; % pixel number
+    params.obj_pix_size = 5e-3;     % 0.5um sampling(representing) size
+    params.obj = 255*ones(params.obj_size);  % obj pattern, white board
+
+    % lens
+    params.lens_f = 2.5;  % focal length
+    params.lens_radius = 0.5; % lens radius
+
+    % DMD
+    params.dmd_pos = 2.5; % dmd's position
+    params.dmd_size = [100,100]; % pixel number
+    params.dmd_pix_size = 10e-3;  % 10um pixel size
+    params.dmd_t = 0.5; % dmd's transmission rate [standard]
+    params.dmd = binary_mask(params.dmd_size, params.dmd_t);  % dmd pattern
+
+
+    % mask
+    params.mask_pos = 4.5; % mask's position
+    params.mask_size = [200,200]; % pixel number
+    params.mask_pix_size = 5e-3;   % 10um pixel size
+    params.mask_t = 0.5; % mask's transmission rate [standard]
+    params.mask = binary_mask(params.mask_size,params.mask_t);  % mask pattern
+
+    % sensor
+    params.sensor_pos = [];
+    params.sensor_size = [100, 100]; % pixel number
+    params.sensor_pix_size = [10e-3, 10e-3]'; % 5um pixel size
+    params.sensor = zeros(params.sensor_size); % image pattern
+    params.large_sensor_flag = 1; % assuming sensor is large enough
+
+end
+
+end
+
+% bak
+%{
+% objective
+obj_pos = -5;           % objective distance -50 mm
+obj_size = [200,200]; % pixel number
+obj_pix_size = 5e-3;     % 0.5um sampling(representing) size
+obj = 255*ones(obj_size);  % obj pattern, white board
+
+% lens
+lens_f = 2.5;  % focal length
+lens_radius = 0.5; % lens radius
+
+% DMD
+% dmd_pos = 0;
+dmd_pos = 2.5; % [standard]
+dmd_size = [100,100]; % pixel number
+dmd_pix_size = 10e-3;  % 10um pixel size
+dmd_t = 0.5; % dmd's transmission rate [standard]
+% dmd_t = 1; % dmd's transmission rate 
+dmd = binary_mask(dmd_size, dmd_t);  % dmd pattern
+% load dmd.mat
+
+% mask
+mask_pos = 5;
+% mask_pos = 4.5;% [standard]
+mask_size = [200,200]; % pixel number
+mask_pix_size = 5e-3;   % 10um pixel size
+mask_t = 0.5; % mask's transmission rate [standard]
+mask = binary_mask(mask_size,mask_t);  % mask pattern
+load mask.mat
+
+% sensor
+sensor_pos = [];
+sensor_size = [100, 100]; % pixel number
+sensor_pix_size = [10e-3, 10e-3]'; % 5um pixel size
+sensor = zeros(sensor_size); % image pattern
+large_sensor_flag = 1; % assuming sensor is large enough
+%}

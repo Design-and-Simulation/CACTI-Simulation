@@ -1,0 +1,85 @@
+%% control parameters
+ctrl_params.show_compare_flag = 1;        % show obj, dmd, mask and image
+ctrl_params.drawing_sys_flag = 0;             % drawing optical system
+ctrl_params.dmd_resampling_factor = 50;   % dmd's MASK_PROPAGATE, resampling_factor
+ctrl_params.mask_resampling_factor = dmd_resampling_factor;  % mask's MASK_PROPAGATE, resampling_factor
+ctrl_params.TEST_MODE_FLAG_ = 'non-test'; % test mode off
+ctrl_params.parallel_flag = false;             % don't use parallel calculation in CACTI
+ctrl_params.ideal_sensor_flag = 0;            % whether to assume sensor is ideal (sensor is the same as image plane)
+
+
+%% system parameters (mm)
+sys_params.obj_pos = -5;
+sys_params.obj_size = [200,200];
+sys_params.obj_pix_size = 5e-3;
+
+% lens
+sys_params.lens_pos = 0;
+sys_params.lens_f = 2.5;
+sys_params.lens_radius = 0.5;
+
+% dmd
+sys_params.dmd_pos = 0;
+sys_params.dmd_size = [100,100];
+sys_params.dmd_pix_size = 10e-3;
+
+% mask
+sys_params.mask_pos = 4.85;
+%     sys_params.mask_pos = 5;
+sys_params.mask_size = [200,200];
+sys_params.mask_pix_size = 5e-3;
+
+% sensor
+sys_params.sensor_pos = [];
+sys_params.sensor_size = [100, 100];
+sys_params.sensor_pix_size = 10e-3;
+
+% calculate image position(sensor_pos)
+sensor_point = point_img([0,0,sys_params.obj_pos]', sys_params.lens_f);
+sys_params.sensor_pos = sensor_point(3); 
+
+
+
+%% drawing parameters
+% set sys params
+% obj
+drawing_params(1).name = 'obj';
+drawing_params(1).pos = obj_pos;
+drawing_params(1).size = obj_size;
+drawing_params(1).pattern = obj;
+drawing_params(1).spot = [[0;0;0]; 0];
+drawing_params(1).element_sz = obj_pix_size;
+
+% lens
+drawing_params(2).name = 'lens';
+drawing_params(2).pos = 0;
+drawing_params(2).size = 2*lens_radius;
+drawing_params(2).spot = [[0;0;0]; lens_radius];
+
+
+% dmd
+drawing_params(3).name = 'dmd';
+drawing_params(3).pos = dmd_pos;
+drawing_params(3).size = dmd_size;    
+drawing_params(3).pattern = dmd;
+drawing_params(3).spot = [[0;0;0]; 0];
+drawing_params(3).element_sz = dmd_pix_size;
+
+% mask
+drawing_params(4).name = 'mask';
+drawing_params(4).pos = mask_pos;
+drawing_params(4).size = mask_size;    
+drawing_params(4).pattern = mask;
+drawing_params(4).spot = [[0;0;0]; 0];
+drawing_params(4).element_sz = mask_pix_size;
+
+ % sensor
+drawing_params(5).name = 'sensor';
+drawing_params(5).pos = sensor_pos;
+drawing_params(5).size = sensor_size;    
+drawing_params(5).pattern = sensor;
+drawing_params(5).spot = [[0;0;0]; 0]; %in-focus
+drawing_params(5).element_sz = sensor_pix_size;
+
+fig_drawing_ = figure;
+light_drawing(drawing_params, 'draw_sys',fig_drawing_)
