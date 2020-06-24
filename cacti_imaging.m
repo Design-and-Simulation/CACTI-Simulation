@@ -90,21 +90,21 @@ addpath('./cacti');
 
 %% env setting
 % flags
-save_res_flag = 0;          % save result data to the local directory
+save_res_flag = 1;          % save result data to the local directory
 save_params_flag = 0;       % save data to the local result file
 load_ctrl_params_flag = 0;  % 0-setting; 1-load from file; 2-use default
 load_sys_params_flag = 0;
 show_image_flag = 1;
 load_patterns_flag = 1;           % load patterns for obj, dmd and mask
-save_compact_type = 0;            % save simulation dataset into one '.mat' file
-save_sep_type = 0;				  % save simulation dataset into separate files (mask.mat, orig.mat, meas.mat)
-whiteboard_flag = 1;			  % whether the obj is a whiteboard
+save_compact_type = 1;            % save simulation dataset into one '.mat' file
+save_sep_type = 1;				  % save simulation dataset into separate files (mask.mat, orig.mat, meas.mat)
+whiteboard_flag = 0;			  % whether the obj is a whiteboard
 
 % paths and names
 test_name = 'cacti_256_10f';
 config_dir = './config/';
 result_dir = './result/test/';
-data_name = [ test_name '_data.mat'];
+data_name = test_name;
 
 
 %% control parameter
@@ -151,7 +151,7 @@ else
     sys_params.dmd_pix_size = 10.5e-3;
     
     % mask
-    sys_params.mask_pos = 4.98;
+    sys_params.mask_pos = 4.95;
 %     sys_params.mask_pos = 5;
     sys_params.mask_size = [300,300];
     sys_params.mask_pix_size = 1e-3;
@@ -226,21 +226,23 @@ sys_params.obj = obj;
 %% cacti simulation dataset saving setting 
 % dataset info
 cr = size(obj,3); % compressive ratio
-cacti_name = ['cacti_256_' num2str(cr) 'f'];
-cacti_dataset_dir = ['\result\' cacti_name];
+size_scale = size(obj,1); % image size
+
+cacti_dataset_dir = ['.\result\cacti_' num2str(size_scale) '_' num2str(cr) 'f\']; % cacti dataset saving dir
+cacti_name = ['cacti_%s_' num2str(size_scale) '_' num2str(cr) 'f']; % general name for simulated data
 
 % dataset name
 if save_compact_type
 	% save simulation dataset into one '.mat' file
-	cacti_dataset_name = [cacti_name '.mat'];
+	cacti_dataset_name = sprintf([cacti_name '.mat'], 'data');
 %     cacti_mask_name = [cacti_name '_syn_mask.mat'];
 end
 
 if save_sep_type
 	% save simulation dataset into separate files (mask.mat, orig.mat, meas.mat)
-	cacti_mask_name = ['mask_' cacti_name '.mat'];
-	cacti_orig_name = ['orig_' cacti_name '.mat'];
-	cacti_meas_name = ['meas_' cacti_name '.mat'];
+	cacti_mask_name = sprintf([cacti_name '.mat'], 'mask');
+	cacti_orig_name = sprintf([cacti_name '.mat'], 'orig');
+	cacti_meas_name = sprintf([cacti_name '.mat'], 'meas');
 end
 
 
@@ -302,9 +304,9 @@ if save_res_flag==1
 	end
     
     % save all data
-	save([result_dir data_name]);
+	save([result_dir data_name '_data.mat']);
     % save images
-    save([result_dir data_name], 'image');
+    save([result_dir data_name '_image.mat'], 'image');
 end
 
 
@@ -315,9 +317,8 @@ if ~isfolder(cacti_dataset_dir)
 end
 
 % 2. save and print parameters to dataset file
-save([cacti_dataset_dir cacti_name '_sys_params.mat'], '-struct','sys_params')
-print_params([cacti_dataset_dir cacti_dataset_name(1:end-4) '_sys_params_setting.txt'], sys_params)
-print_params([result_dir 'ctrl_params_setting.txt'], ctrl_params)
+save([cacti_dataset_dir sprintf([cacti_name '.mat'], 'sys_params')], '-struct','sys_params')
+print_params([cacti_dataset_dir sprintf([cacti_name '.txt'], 'sys_params')], sys_params)
 
 % 3. data arrange
 % copy image
@@ -327,12 +328,12 @@ sensor_image = image;
 sensor_image = single(sensor_image);
 sensor_image = rot90(sensor_image,2);
 
-% data rename
+% data assign
 if whiteboard_flag
 	% the obj is a whiteboard, used for synthetic mask calibration
 	% ! the variable 'mask' is reused for synthtic mask here
-	mask = sensor_image;  % non-normalized
-	% mask = dvp_image./single(max(obj, [], 'all'));  % normalized to 0-1
+% 	mask = sensor_image;  % non-normalized
+	mask = sensor_image./single(max(obj, [], 'all'));  % normalized to 0-1
 else
 	% the obj is the natural scene
 	orig = uint8(obj);
@@ -340,8 +341,8 @@ else
 end
 
 % 4. save dataset
+% save simulation dataset into one '.mat' file
 if save_compact_type==1	
-	% save simulation dataset into one '.mat' file
 	if isfile([cacti_dataset_dir cacti_dataset_name]) 
 		if whiteboard_flag
 			save([cacti_dataset_dir cacti_dataset_name], 'mask', '-append');
@@ -355,15 +356,19 @@ if save_compact_type==1
 			save([cacti_dataset_dir cacti_dataset_name], 'orig', 'meas', '-v7.3');
 		end        
 	end
-	
-elseif save_sep_type==1
-	% the obj is the natural scene
-	orig = uint8(obj);
-	meas = single(sum(sensor_image, 3));
-	% save the object
-	save([dl_cacti_simudata_dir cacti_orig_name], 'obj');			
-	% save the measurenment
-	save([dl_cacti_simudata_dir cacti_meas_name], 'meas');	
+end
+
+% the obj is the natural scene
+if save_sep_type==1	
+	if whiteboard_flag		
+		% save the mask
+		save([cacti_dataset_dir cacti_mask_name], 'mask');
+	else
+		% save the object
+		save([cacti_dataset_dir cacti_orig_name], 'orig');	
+		% save the measurenment
+		save([cacti_dataset_dir cacti_meas_name], 'meas');	
+	end
 end
 
 

@@ -14,8 +14,8 @@ function sensor_img = sensor_imaging(varargin)
 %   sensor_pixel_size   the physical size of sensor's pixel (element),
 %                       float scalar
 % 
-%   AD                  analog-digital-convert params, [quan_level, sat_value,  
-%                       save_class], "quan_level" is quantitative level, int scalar,
+%   AD                  analog-digital-convert params, [quan_level, sat_value], 
+%                       "quan_level" is quantitative level, int scalar,
 %                       default=ceil(sat_value), i.e. default quantitative 
 %                       interval is "1". "sat_value" is saturation value, i.e.
 %                       the maximum limitation of ADC, float scalar
@@ -42,12 +42,21 @@ function sensor_img = sensor_imaging(varargin)
 % input setting
 narginchk(1,6)
 
+% the first param is 'tmp_img'
 tmp_img = varargin{1};
 if nargin==1
+	% ideal sensor with default saving datatype,{tmp_img}
 	save_class = 'default';
 elseif nargin==2
+	% ideal sensor with assigned saving datatype,{tmp_img, save_class}
 	save_class = varargin{2};
+elseif nargin==4
+	% {tmp_img, tmp_img_pixel_size, sensor_size, sensor_pixel_size}
+	tmp_img_pixel_size = varargin{2};
+	sensor_size = varargin{3};
+	sensor_pixel_size = varargin{4};
 elseif nargin==5 || nargin==6
+	% non-ideal sensor {tmp_img, tmp_img_pixel_size, sensor_size, sensor_pixel_size, AD [,save_class]}
 	tmp_img_pixel_size = varargin{2};
 	sensor_size = varargin{3};
 	sensor_pixel_size = varargin{4};
@@ -58,10 +67,8 @@ elseif nargin==5 || nargin==6
 		save_class = 'default';
 	end
 else
-	error('error input')
+	error('input parameters error')
 end
-
-
 
 
 % tmp image size
