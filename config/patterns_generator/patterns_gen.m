@@ -1,52 +1,31 @@
 %% patterns generate
 % generate patterns of object, dmd and mask for cacti_imgaing
-% 
 
 
 %% setting
 frame_num = 10;
-whiteboard_flag = 0;
+whiteboard_flag = 1;
 
-obj_size = [512 512 frame_num];
-dmd_size = [100 100 frame_num];
-mask_size = [600 600];
-
-% for dmd_method==4
-dmd_subblank_num = 1;
-dmd_subblank_size = [10 10];
-dmd_margin = 10; % margin area can not be selected as square center
-
-% for dmd_method==5
-% initial size of random dmd before enlarge to given size
-% init_dmd_size = [floor(sqrt(frame_num)) floor(sqrt(frame_num)) frame_num]; % default
-init_dmd_size = [3 3 frame_num];  % granularity
-
-
-% for mask_method==2
-a=0; b=1;         % uniform distribution params
-% for mask_method==3
-mu=0.5; sigma=0.5;          % gaussian distribution params
-% for mask_method = 2 or 3
-kernel_size=1;
-
+obj_size = [256 256 frame_num];
+dmd_size = [50 50 frame_num];
+mask_size = [300 300];
 
 % saving date name
 % data_dir = '.\CI algorithm\dvp\config\';
 
 if whiteboard_flag
-    data_name = '512scale_whiteboard_config.mat';
-    obj_save_name = '512scale_whiteboard_512.mat';
+	data_name = ['whiteboard_config_' num2str(obj_size(1)) '_' num2str(frame_num) 'f.mat'];
+    obj_save_name = ['whiteboard_'  num2str(obj_size(1)) '_' num2str(frame_num) 'f.mat'];
 else
-	data_name = '512scale_traffic_config.mat';
-    obj_save_name = '512scale_traffic_512.mat';
-    obj_load_dir = 'E:\project\CACTI\simulation\CI algorithm\dvp\\dataset\';
-    obj_data_name = 'traffic_bayer.mat';
+	data_name = ['obj_config_' num2str(obj_size(1)) '_' num2str(frame_num) 'f.mat'];
+    obj_load_path = './_traffic.mat';
+	obj_save_name = ['obj_'  num2str(obj_size(1)) '_' num2str(frame_num) 'f.mat'];
 end
 
-dmd_path = './512scale_dmd_100.mat';
-mask_path = './512scale_mask_600.mat';
+dmd_path = ['dmd_'  num2str(dmd_size(1)) '_' num2str(frame_num) 'f.mat'];
+mask_path = ['mask_'  num2str(mask_size(1)) '_' num2str(frame_num) 'f.mat'];
 
-% obj method: 
+% [1] obj method: 
 % 0-scene (load obj)
 % 1-whiteboard; 
 if whiteboard_flag
@@ -56,7 +35,7 @@ else
 end
 
 
-% dmd method:
+% [2] dmd method:
 % 0-load dmd
 % 1-N*N single subblanks on; 
 % 2-handcraft
@@ -66,12 +45,21 @@ end
 if isfile(dmd_path)
 	dmd_method = 0; % load existing dmd
 else
-	dmd_method = 1;
+	dmd_method = 5;
 	disp('generate dmd');
 end  
 
+% for dmd_method==4
+dmd_subblank_num = 1;
+dmd_subblank_size = [10 10];
+dmd_margin = 10; % margin area can not be selected as square center
 
-% mask method:
+% for dmd_method==5
+% initial size of random dmd before enlarge to given size
+% init_dmd_size = [floor(sqrt(frame_num)) floor(sqrt(frame_num)) frame_num]; % default
+init_dmd_size = [5 5 frame_num];  % granularity
+
+% [3] mask method:
 % 0-load mask
 % 1-binary mask
 % 2-grayscale mask & uniform distribution
@@ -79,15 +67,23 @@ end
 if isfile(mask_path)
 	mask_method = 0; % load existing mask
 else
-	mask_method = 3;
+	mask_method = 1;
 	disp('generate mask');
 end  
-    
+
+% for mask_method==2
+a=0; b=1;         % uniform distribution params
+% for mask_method==3
+mu=0.5; sigma=0.5;          % gaussian distribution params
+% for mask_method = 2 or 3
+kernel_size=1;
+
+
 %% obj
 if obj_method == 0
     % load, scene
-    loaded_data = load([obj_load_dir, obj_data_name],'orig_bayer');
-    obj = loaded_data.orig_bayer(:,:,1:frame_num);    
+    loaded_data = load(obj_load_path,'orig');
+    obj = loaded_data.orig(:,:,1:frame_num);    
    
 elseif obj_method == 1
     % 1-whiteboard

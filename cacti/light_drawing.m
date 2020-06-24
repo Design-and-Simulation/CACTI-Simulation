@@ -130,7 +130,7 @@ function draw_light(params)
 comp_num = numel(params);
 spot = cell2mat({params.spot});
 if size(spot,2) ~= comp_num
-    error('"spot" paramter is lost for some componments')
+    warning('"spot" paramter is lost for some componments, ignore them and continue')
 end
 spot_X = spot(1,:);
 spot_Y = spot(2,:);
@@ -174,7 +174,8 @@ end
 comp_phy_sz = ones(comp_num, 1);
 for k = 1:comp_num
     if numel(params(k).size) == 1 && ~isempty(params(k).size)
-        comp_phy_sz(k) = params(k).size;
+		% for lens, the "size" field is directly the physical size
+        comp_phy_sz(k) = params(k).size; 
     elseif numel(params(k).size) == 2 && ~isempty(params(k).size)
         if ~isempty(params(k).element_sz)
             % z-x coord-sys, anti-light view, so use size(1), i.e. num of rows for component physical height

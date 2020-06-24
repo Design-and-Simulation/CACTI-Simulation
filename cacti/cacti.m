@@ -89,7 +89,7 @@ narginchk(4,5);
 if nargin < 5
     % parameter
     show_compare_flag = 1;              % show obj, dmd, mask and image
-    drawing_sys_flag = 1;               % drawing optical system
+%     drawing_sys_flag = 1;               % drawing optical system
     dmd_resampling_factor = 50;         % dmd's MASK_PROPAGATE, resampling_factor
     mask_resampling_factor = dmd_resampling_factor;  % mask's MASK_PROPAGATE, resampling_factor
 	TEST_MODE_FLAG_ = 'non-test';       % test mode, 'test_dmd', 'test_mask', 'test_all', 'non-test'
@@ -98,7 +98,7 @@ if nargin < 5
 else
     % convert params to variables for fast calculation
     show_compare_flag = ctrl_params.show_compare_flag;
-    drawing_sys_flag = ctrl_params.drawing_sys_flag;
+%     drawing_sys_flag = ctrl_params.drawing_sys_flag;
     dmd_resampling_factor = ctrl_params.dmd_resampling_factor;
     mask_resampling_factor = ctrl_params.mask_resampling_factor;
 	TEST_MODE_FLAG_ = ctrl_params.TEST_MODE_FLAG_;
@@ -338,52 +338,52 @@ if show_compare_flag
     title(['sensor image-' class(image)])
 end
 
-% show optical system
-if drawing_sys_flag
-    % set sys params
-    % obj
-    drawing_params(1).name = 'obj';
-    drawing_params(1).pos = obj_pos;
-    drawing_params(1).size = obj_size;
-    drawing_params(1).pattern = obj;
-    drawing_params(1).spot = [squeeze(obj_points(1,1,:)); 0];
-    drawing_params(1).element_sz = obj_pix_size;
-
-    % lens
-    drawing_params(2).name = 'lens';
-    drawing_params(2).pos = lens_pos;
-    drawing_params(2).size = 2*lens_radius;
-    drawing_params(2).spot = [[0,0,0]'; lens_radius];
-
-
-    % dmd
-    drawing_params(3).name = 'dmd';
-    drawing_params(3).pos = dmd_pos;
-    drawing_params(3).size = dmd_size;    
-    drawing_params(3).pattern = dmd;
-    drawing_params(3).spot = [squeeze(dmd_spot_p(1,1,:)); dmd_spot_r];
-    drawing_params(3).element_sz = dmd_pix_size;
-
-    % mask
-    drawing_params(4).name = 'mask';
-    drawing_params(4).pos = mask_pos;
-    drawing_params(4).size = mask_size;    
-    drawing_params(4).pattern = mask;
-    drawing_params(4).spot = [squeeze(mask_spot_p(1,1,:)); mask_spot_r];
-    drawing_params(4).element_sz = mask_pix_size;
-    
-     % sensor
-    sensor_point = point_img(squeeze(obj_points(1,1,:)), lens_f);
-    drawing_params(5).name = 'sensor';
-    drawing_params(5).pos = sensor_pos;
-    drawing_params(5).size = sensor_size;    
-    drawing_params(5).pattern = sensor_img;
-    drawing_params(5).spot = [sensor_point; 0]; %in-focus
-    drawing_params(5).element_sz = sensor_pix_size;
-    fig_drawing_ = figure;
-    light_drawing(drawing_params,fig_drawing_)
-    drawnow
-end
+% % show optical system
+% % if drawing_sys_flag
+%     % set sys params
+%     % obj
+%     drawing_params(1).name = 'obj';
+%     drawing_params(1).pos = obj_pos;
+%     drawing_params(1).size = obj_size;
+%     drawing_params(1).pattern = obj;
+%     drawing_params(1).spot = [squeeze(obj_points(1,1,:)); 0];
+%     drawing_params(1).element_sz = obj_pix_size;
+% 
+%     % lens
+%     drawing_params(2).name = 'lens';
+%     drawing_params(2).pos = lens_pos;
+%     drawing_params(2).size = 2*lens_radius;
+%     drawing_params(2).spot = [[0,0,0]'; lens_radius];
+% 
+% 
+%     % dmd
+%     drawing_params(3).name = 'dmd';
+%     drawing_params(3).pos = dmd_pos;
+%     drawing_params(3).size = dmd_size;    
+%     drawing_params(3).pattern = dmd;
+%     drawing_params(3).spot = [squeeze(dmd_spot_p(1,1,:)); dmd_spot_r];
+%     drawing_params(3).element_sz = dmd_pix_size;
+% 
+%     % mask
+%     drawing_params(4).name = 'mask';
+%     drawing_params(4).pos = mask_pos;
+%     drawing_params(4).size = mask_size;    
+%     drawing_params(4).pattern = mask;
+%     drawing_params(4).spot = [squeeze(mask_spot_p(1,1,:)); mask_spot_r];
+%     drawing_params(4).element_sz = mask_pix_size;
+%     
+%      % sensor
+%     sensor_point = point_img(squeeze(obj_points(1,1,:)), lens_f);
+%     drawing_params(5).name = 'sensor';
+%     drawing_params(5).pos = sensor_pos;
+%     drawing_params(5).size = sensor_size;    
+%     drawing_params(5).pattern = sensor_img;
+%     drawing_params(5).spot = [sensor_point; 0]; %in-focus
+%     drawing_params(5).element_sz = sensor_pix_size;
+%     fig_drawing_ = figure;
+%     light_drawing(drawing_params,fig_drawing_)
+%     drawnow
+% end
 
 end
 
