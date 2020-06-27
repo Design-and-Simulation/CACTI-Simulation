@@ -90,21 +90,30 @@ addpath('./cacti');
 
 %% env setting
 % flags
-save_res_flag = 1;          % save result data to the local directory
+save_res_flag = 0;          % save result data to the local directory
 save_params_flag = 0;       % save data to the local result file
 load_ctrl_params_flag = 0;  % 0-setting; 1-load from file; 2-use default
 load_sys_params_flag = 0;
 show_image_flag = 1;
-load_patterns_flag = 1;           % load patterns for obj, dmd and mask
-save_compact_type = 1;            % save simulation dataset into one '.mat' file
+load_patterns_flag = 0;           % load patterns for obj, dmd and mask
+save_compact_type = 0;            % save simulation dataset into one '.mat' file
 save_sep_type = 1;				  % save simulation dataset into separate files (mask.mat, orig.mat, meas.mat)
-whiteboard_flag = 0;			  % whether the obj is a whiteboard
+whiteboard_flag = 1;			  % whether the obj is a whiteboard
 
 % paths and names
-test_name = 'cacti_256_10f';
+% test_name = 'cacti_256_10f';
+test_name = 'center_circle_dmd'; % dmd design test
 config_dir = './config/';
-result_dir = './result/test/';
+result_dir = './result/tmp/';
 data_name = test_name;
+
+% make dir
+if save_res_flag || save_params_flag
+	if ~isfolder(result_dir)
+		mkdir(result_dir)
+	end
+end
+
 
 
 %% control parameter
@@ -147,8 +156,8 @@ else
     
     % dmd
     sys_params.dmd_pos = 0;
-    sys_params.dmd_size = [50,50];
-    sys_params.dmd_pix_size = 10.5e-3;
+    sys_params.dmd_size = [256,256];
+    sys_params.dmd_pix_size = 2.05e-3;
     
     % mask
     sys_params.mask_pos = 4.95;
@@ -196,25 +205,35 @@ if load_patterns_flag
 else
 	% generate patterns
     % obj
-    obj = 255*ones(sys_params.obj_size);
+	obj_num = 10;
+    obj = 255*ones([sys_params.obj_size obj_num]);
 
+	
     % dmd
+	% generate dmd
     % dmd_t = 0.5;                            % dmd's transmission rate [standard]
     % dmd_t = 1;                            % dmd's transmission rate 
     % dmd = binary_mask(sys_params.dmd_size, dmd_t);     % dmd pattern
     % dmd = binary_mask(sys_params.dmd_size, 'fixed', 'up_half');  % dmd pattern
-    dmd = binary_mask(sys_params.dmd_size, 'fixed', 'down_half');  % dmd pattern
-    % dmd = load([config_dir 'dmd/dmd.mat']);
+    % dmd = binary_mask(sys_params.dmd_size, 'fixed', 'down_half');  % dmd pattern
+	
+	% load dmd
+	dmd_name = 'center_circle_dmd_256_10f';
+    load([config_dir 'dmd/designed_dmd/' dmd_name '.mat']);
+	
 
-
-    %mask
+    % mask
+	% generate mask
     % mask_t = 0.5;                           % mask's transmission rate 
     % mask = binary_mask(dmd_size, dmd_t);    % binary mask pattern
     % mu=0.5; sigma=0.5; kernel_size=1;         % gaussian distribution params
     % mask = gray_mask(sys_params.mask_size, [mu,sigma,kernel_size]);  % gray mask pattern
-    mask_t = 0.5;
-    mask = gray_mask(sys_params.mask_size);      % mask pattern, uniform distribution
-    % mask = load([config_dir 'mask/mask.mat']);
+    % mask_t = 0.5;
+    % mask = gray_mask(sys_params.mask_size);      % mask pattern, uniform distribution
+	
+	% load mask
+	mask_name = 'mask_300';
+    load([config_dir 'mask/' mask_name '.mat']);
 end
 
 % append sys_params
@@ -228,8 +247,14 @@ sys_params.obj = obj;
 cr = size(obj,3); % compressive ratio
 size_scale = size(obj,1); % image size
 
-cacti_dataset_dir = ['.\result\cacti_' num2str(size_scale) '_' num2str(cr) 'f\']; % cacti dataset saving dir
-cacti_name = ['cacti_%s_' num2str(size_scale) '_' num2str(cr) 'f']; % general name for simulated data
+time_now = datestr(now,'yyyy-mm-dd_HH-MM-SS');
+
+% cacti_dataset_dir = ['.\dataset\data\cacti_' num2str(size_scale) '_' num2str(cr) 'f_' time_now '\']; % cacti dataset saving dir
+% cacti_name = ['cacti_%s_' num2str(size_scale) '_' num2str(cr) 'f']; % general name for simulated data
+
+cacti_dataset_dir = ['.\dataset\mask\cacti_' test_name '_'  num2str(size_scale) '_' num2str(cr) 'f' '\']; % cacti mask dataset saving dir
+cacti_name = ['cacti_%s_' test_name '_' num2str(size_scale) '_' num2str(cr) 'f']; % general name for simulated mask data
+
 
 % dataset name
 if save_compact_type
@@ -311,33 +336,35 @@ end
 
 
 %% save cacti simulation dataset
-% 1. mkdir
-if ~isfolder(cacti_dataset_dir)
-	mkdir(cacti_dataset_dir)
-end
+if save_compact_type==1	|| save_sep_type==1	
+	% 1. mkdir
+	if ~isfolder(cacti_dataset_dir)
+		mkdir(cacti_dataset_dir)
+	end
 
-% 2. save and print parameters to dataset file
-save([cacti_dataset_dir sprintf([cacti_name '.mat'], 'sys_params')], '-struct','sys_params')
-print_params([cacti_dataset_dir sprintf([cacti_name '.txt'], 'sys_params')], sys_params)
+	% 2. save and print parameters to dataset file
+	save([cacti_dataset_dir sprintf([cacti_name '.mat'], 'sys_params')], '-struct','sys_params')
+	print_params([cacti_dataset_dir sprintf([cacti_name '.txt'], 'sys_params')], sys_params)
 
-% 3. data arrange
-% copy image
-sensor_image = image;
+	% 3. data arrange
+	% copy image
+	sensor_image = image;
 
-% convert image to "single" format and rotate to mask the scene upright
-sensor_image = single(sensor_image);
-sensor_image = rot90(sensor_image,2);
+	% convert image to "single" format and rotate to mask the scene upright
+	sensor_image = single(sensor_image);
+	sensor_image = rot90(sensor_image,2);
 
-% data assign
-if whiteboard_flag
-	% the obj is a whiteboard, used for synthetic mask calibration
-	% ! the variable 'mask' is reused for synthtic mask here
-% 	mask = sensor_image;  % non-normalized
-	mask = sensor_image./single(max(obj, [], 'all'));  % normalized to 0-1
-else
-	% the obj is the natural scene
-	orig = uint8(obj);
-	meas = single(sum(sensor_image, 3));
+	% data assign
+	if whiteboard_flag
+		% the obj is a whiteboard, used for synthetic mask calibration
+		% ! the variable 'mask' is reused for synthtic mask here
+	% 	mask = sensor_image;  % non-normalized
+		mask = sensor_image./single(max(obj, [], 'all'));  % normalized to 0-1
+	else
+		% the obj is the natural scene
+		orig = uint8(obj);
+		meas = single(sum(sensor_image, 3));
+	end
 end
 
 % 4. save dataset
@@ -371,69 +398,6 @@ if save_sep_type==1
 	end
 end
 
-
-% % save simulation dataset into one '.mat' file
-% if save_compact_type==1	
-%     % copy image
-%     sensor_image = image;
-%     
-%     % convert image to "single" format and rotate to mask the scene upright
-%     sensor_image = single(sensor_image);
-%     sensor_image = rot90(sensor_image,2);
-%     
-% 	% data arrange
-%     if whiteboard_flag
-%         % the obj is a whiteboard, used for synthetic mask calibration
-% 		% ! the variable 'mask' is reused for synthtic mask here
-%         mask = sensor_image;  % non-normalized
-% % 		mask = dvp_image./single(max(obj, [], 'all'));  % normalized to 0-1
-%     else
-%         % the obj is the natural scene
-%         orig = uint8(obj);
-%         meas = single(sum(sensor_image, 3));
-%     end
-%     
-%     % save
-%     if isfile([cacti_dataset_dir cacti_dataset_name]) 
-%         if whiteboard_flag
-%             save([cacti_dataset_dir cacti_dataset_name], 'mask', '-append');
-%         else
-%             save([cacti_dataset_dir cacti_dataset_name], 'orig', 'meas', '-append');
-%         end
-%     else
-%         if whiteboard_flag
-%             save([cacti_dataset_dir cacti_dataset_name], 'mask', '-v7.3');
-%         else
-%             save([cacti_dataset_dir cacti_dataset_name], 'orig', 'meas', '-v7.3');
-%         end        
-%     end
-%         
-% end
-% 
-% % save simulation dataset into separate files (mask.mat, orig.mat, meas.mat)
-% if save_sep_type
-%     % copy image
-%     sensor_image = image;
-%     
-%     % convert image to "single" format and rotate to mask the scene upright
-%     sensor_image = single(sensor_image);
-%     sensor_image = rot90(sensor_image,2);
-%     
-%     if whiteboard_flag
-%         % the obj is a whiteboard, used for synthetic mask calibration
-%         mask = sensor_image./single(max(obj, [], 'all'));  % normalized to 0-1
-%         % save the synthetic mask
-%         save([dl_cacti_simudata_dir cacti_mask_name], 'mask'); 
-%     else
-%         % the obj is the natural scene
-% 		orig = uint8(obj);
-%         meas = single(sum(sensor_image, 3));
-%         % save the object
-%         save([dl_cacti_simudata_dir cacti_orig_name], 'obj');			
-%         % save the measurenment
-%         save([dl_cacti_simudata_dir cacti_meas_name], 'meas');
-% 	end
-% end
 
 
 %% illustration
