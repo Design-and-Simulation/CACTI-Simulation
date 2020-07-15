@@ -51,5 +51,10 @@ end
 % enlarge
 sz_ratio = dst_size./size(mask);
 tmp_mask = kron(mask, ones(floor(sz_ratio)));
-dst_mask = imresize(tmp_mask, dst_size, 'nearest'); 
+if any(floor(sz_ratio)~=sz_ratio)
+	dst_mask = imresize(tmp_mask, dst_size, 'nearest'); 
+else
+	dst_mask = tmp_mask;
+end
+
 end

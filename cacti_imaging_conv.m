@@ -1,4 +1,5 @@
-%CACTI_IMAGING: Imaging with Coded Aperture Compressive Temporal Imaging System
+%CACTI_IMAGING_CONV: Imaging with Coded Aperture Compressive Temporal
+%Imaging System £¨Convolution Version£©
 %   Simulation of the imaging process of a CACTI system, which contains an  
 %   object, a dmd, a lens, a mask and a sensor.
 % 
@@ -22,10 +23,7 @@
 %     following fields:
 %       show_compare_flag   % show obj, dmd, mask and image, default = 1;
 %       drawing_flag		% drawing the optical system
-%       resampling_factor   % resampling factor for MASK_PROPAGATE
-%       ideal_sensor_flag   % sensor conducts ideal sampling
-%       TEST_MODE_FLAG_     % test mode for MASK_PROPAGATE, default = 'non-test'
-%       parallel_flag       % whether to use parallel calculation in CACTI      
+%       ideal_sensor_flag   % sensor conducts ideal sampling    
 % 
 %   Output:
 %   --------
@@ -33,6 +31,14 @@
 % 
 %   Note: 
 %   --------
+%	* code description£º
+%		This code uses convolution operation to calculate the combined
+%		mask's transimitance, which is faster than geometry methods.
+%		 
+%		This code is only suitable for the situation, where DMD is located
+%		at the aperture plane. And the DMD pattern shoule have coarse
+%		granularity.
+% 
 %   * system description:
 %       - physical 3D coordinate system is:x-up, y-out, z-right
 % 
@@ -42,35 +48,22 @@
 %       up corner of the physical object(obj, dmd or mask)
 % 
 %   * function note:
-%     - resampling_factor: For dmd's MASK_PROPAGATE, resampling_factor =
-%     50 is recommended, it means the spot on dmd will contain 50*50
-%     virtual elements after resampling, which is proper from perspective of
-%     memory-consumption and time-consumption. For mask's MASK_PROPAGATE,
-%     resampling_factor = default (or = dmd resampling_factor) is recommended, 
-%     it means the resampling_factor will be determined by the former mask
-%     (i.e. the dmd), so that when combining two mask, they can directly 
-%     match well without resize.
-% 
 %     - ideal_sensor_flag: if true, we assume that the sensor conducts ideal 
 %     sampling, i.e.,the sensor image is the same as the image plane, the
 %     physical size or AD conversion is not considerated.
 % 
-%     - TEST_MODE_FLAG_: the test flag for function MASK_PROPAGATE, it only
-%     take effect when parallel_flag=false (in paraller mode, the function 
-%     test is not permitted. {'test_dmd', 'test_mask', 'test_all','non_test'}
-% 
 % 
 %   See also:
 %   --------
-%   CACTI, MASK_PROPAGATE£¬ 
+%   CACTI_CONV, MASK_CONV, CACTI_IMAGING
 % 
 %   Log:
 %   --------
 % 
 %   Info:
 %   --------
-%   Created:        Zhihong Zhang <z_zhi_hong@163.com>, 2020-04-01
-%   Last Modified:  Zhihong Zhang, 2020-04-01
+%   Created:        Zhihong Zhang <z_zhi_hong@163.com>, 2020-07-15
+%   Last Modified:  Zhihong Zhang, 2020-07-15
 %               
 %   Refs:
 %       - [1] T. Bishop, S. Zanetti, and P. Favaro, ¡°Light Field Superresolution,¡± 
@@ -97,7 +90,7 @@ load_sys_params_flag = 0;
 show_image_flag = 1;
 load_patterns_flag = 0;           % load patterns for obj, dmd and mask
 save_compact_type = 0;            % save simulation dataset into one '.mat' file
-save_sep_type = 1;				  % save simulation dataset into separate files (mask.mat, orig.mat, meas.mat)
+save_sep_type = 0;				  % save simulation dataset into separate files (mask.mat, orig.mat, meas.mat)
 whiteboard_flag = 1;			  % whether the obj is a whiteboard
 
 % paths and names
@@ -123,11 +116,6 @@ else
     ctrl_params.show_compare_flag = 0;            % whether to show obj, dmd, mask and image
     ctrl_params.drawing_sys_flag = 1;             % whether to draw optical system
     ctrl_params.dmd_resampling_factor = 50;       % dmd's MASK_PROPAGATE, resampling_factor
-    ctrl_params.mask_resampling_factor = 50;      % mask's MASK_PROPAGATE, resampling_factor
-%     ctrl_params.TEST_MODE_FLAG_ = 'test_mask';     % test mode, 'test_dmd', 'test_mask', 'test_all', 'non_test'
-	ctrl_params.TEST_MODE_FLAG_ = 'non_test';     % test mode, 'test_dmd', 'test_mask', 'test_all', 'non_test'
-%     ctrl_params.parallel_flag = 0;                % whether to use parallel calculation in CACTI
-	ctrl_params.parallel_flag = 1;                % whether to use parallel calculation in CACTI
     ctrl_params.ideal_sensor_flag = 1;            % whether to assume sensor is ideal (sensor is the same as image plane)
 end
 
@@ -156,8 +144,8 @@ else
     
     % dmd
     sys_params.dmd_pos = 0;
-    sys_params.dmd_size = [256,256];
-    sys_params.dmd_pix_size = 2.05e-3;
+    sys_params.dmd_size = [6,6];
+    sys_params.dmd_pix_size = 0.1312;
     
     % mask
     sys_params.mask_pos = 4.95;
@@ -211,15 +199,14 @@ else
 	
     % dmd
 	% generate dmd
-    % dmd_t = 0.5;                            % dmd's transmission rate [standard]
-    % dmd_t = 1;                            % dmd's transmission rate 
-    % dmd = binary_mask([sys_params.dmd_size obj_num], dmd_t);     % dmd pattern
+    dmd_t = 0.5;                            % dmd's transmission rate [standard] 
+    dmd = binary_mask([sys_params.dmd_size obj_num], dmd_t);     % dmd pattern
     % dmd = binary_mask([sys_params.dmd_size obj_num], 'fixed', 'up_half');  % dmd pattern
     % dmd = binary_mask([sys_params.dmd_size obj_num], 'fixed', 'down_half');  % dmd pattern
 	
 	% load dmd
- 	dmd_name = 'center_circle_dmd_256_10f';
-    load([config_dir 'dmd/designed_dmd/' dmd_name '.mat']);
+ 	% dmd_name = 'center_circle_dmd_256_10f';
+    % load([config_dir 'dmd/designed_dmd/' dmd_name '.mat']);
 	
 
     % mask
@@ -303,7 +290,7 @@ for k = 1:obj_num
     
     % cacti imaging
 %     image_output = cacti(obj_input, dmd_input, mask, sys_params);
-    image_output = cacti(obj_input, dmd_input, mask, sys_params, ctrl_params);
+    image_output = cacti_conv(obj_input, dmd_input, mask, sys_params, ctrl_params);
 
     % output
     image(:,:,k) = image_output;
