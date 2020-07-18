@@ -90,12 +90,13 @@ load_sys_params_flag = 0;
 show_image_flag = 1;
 load_patterns_flag = 0;           % load patterns for obj, dmd and mask
 save_compact_type = 0;            % save simulation dataset into one '.mat' file
-save_sep_type = 0;				  % save simulation dataset into separate files (mask.mat, orig.mat, meas.mat)
+save_sep_type = 1;				  % save simulation dataset into separate files (mask.mat, orig.mat, meas.mat)
 whiteboard_flag = 1;			  % whether the obj is a whiteboard
 
 % paths and names
 % test_name = 'cacti_256_10f';
-test_name = 'center_circle_dmd'; % dmd design test
+% test_name = 'row_stripe_dmd_10_10f'; % dmd design test
+test_name = 'manual_dmd_10_10f';
 config_dir = './config/';
 result_dir = './result/tmp/';
 data_name = test_name;
@@ -115,7 +116,6 @@ if load_ctrl_params_flag
 else
     ctrl_params.show_compare_flag = 0;            % whether to show obj, dmd, mask and image
     ctrl_params.drawing_sys_flag = 1;             % whether to draw optical system
-    ctrl_params.dmd_resampling_factor = 50;       % dmd's MASK_PROPAGATE, resampling_factor
     ctrl_params.ideal_sensor_flag = 1;            % whether to assume sensor is ideal (sensor is the same as image plane)
 end
 
@@ -144,8 +144,8 @@ else
     
     % dmd
     sys_params.dmd_pos = 0;
-    sys_params.dmd_size = [6,6];
-    sys_params.dmd_pix_size = 0.1312;
+    sys_params.dmd_size = [10,10];
+    sys_params.dmd_pix_size = 2.05e-3*256/10;
     
     % mask
     sys_params.mask_pos = 4.95;
@@ -199,14 +199,16 @@ else
 	
     % dmd
 	% generate dmd
-    dmd_t = 0.5;                            % dmd's transmission rate [standard] 
-    dmd = binary_mask([sys_params.dmd_size obj_num], dmd_t);     % dmd pattern
+    % dmd_t = 0.5;                            % dmd's transmission rate [standard] 
+    % dmd = binary_mask([sys_params.dmd_size obj_num], dmd_t);     % dmd pattern
     % dmd = binary_mask([sys_params.dmd_size obj_num], 'fixed', 'up_half');  % dmd pattern
     % dmd = binary_mask([sys_params.dmd_size obj_num], 'fixed', 'down_half');  % dmd pattern
 	
 	% load dmd
  	% dmd_name = 'center_circle_dmd_256_10f';
-    % load([config_dir 'dmd/designed_dmd/' dmd_name '.mat']);
+ 	% dmd_name = 'row_stripe_dmd_10_10f';
+	dmd_name = 'manual_dmd_10_10f';
+    load([config_dir 'dmd/designed_dmd/' dmd_name '.mat']);
 	
 
     % mask
@@ -239,8 +241,8 @@ time_now = datestr(now,'yyyy-mm-dd_HH-MM-SS');
 % cacti_dataset_dir = ['.\dataset\data\cacti_' num2str(size_scale) '_' num2str(cr) 'f_' time_now '\']; % cacti dataset saving dir
 % cacti_name = ['cacti_%s_' num2str(size_scale) '_' num2str(cr) 'f']; % general name for simulated data
 
-cacti_dataset_dir = ['.\dataset\mask\cacti_' test_name '_'  num2str(size_scale) '_' num2str(cr) 'f' '\']; % cacti mask dataset saving dir
-cacti_name = ['cacti_%s_' test_name '_' num2str(size_scale) '_' num2str(cr) 'f']; % general name for simulated mask data
+cacti_dataset_dir = ['.\dataset\mask\cacti_' test_name '_'  num2str(size_scale) '_' num2str(cr) 'f' '_conv' '\']; % cacti mask dataset saving dir
+cacti_name = ['cacti_%s_' test_name '_' num2str(size_scale) '_' num2str(cr) 'f' '_conv']; % general name for simulated mask data
 
 
 % dataset name

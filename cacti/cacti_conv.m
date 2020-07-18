@@ -89,7 +89,7 @@ addpath('./cacti');
 
 
 %% calculation
-% init
+% [1] init
 % convert params to variables for fast calculation
 % obj
 obj_pos = sys_params.obj_pos;
@@ -112,24 +112,15 @@ sensor_pos = sys_params.sensor_pos;
 sensor_size = sys_params.sensor_size;
 sensor_pix_size = sys_params.sensor_pix_size;
 
-obj_row = obj_size(1);
-obj_col = obj_size(2);
-
-% judge whether dmd is at the aperture plane
-dmd_pos_zero = 0;
-if dmd_pos == 0
-    dmd_pos_zero = 1;
-end
 
 obj = single(obj); % convert from int to single for calculation accuracy
-combined_mask_t = zeros(obj_size);    % combined mask's transimttance
 
-% propagating
+% [2] propagating
 fprintf('\n* start calculation...\n')
 
-% geometrical measurement
-% dmd
-if ~dmd_pos_zero
+% [2.1] geometrical measurement
+% judge whether dmd is at the aperture plane
+if dmd_pos ~= 0
 	error(['this code can only deal with the situation where DMD is located at'...
 	'the aperture plane, please use "cacti_imaging.m" instead.']); 
 end
@@ -160,22 +151,33 @@ if all(croped_mask_size == 2*effect_area_r_mn)
 else
 	up_left = effect_area_r_mn - round(croped_mask_size(1)./2);
 	up_left = max(up_left, [1 1]); % in case of out of boundary
-	right_down = up_left + croped_mask_size;
-	right_down = min(right_down, 2*effect_area_r_mn);
-
+	right_down = up_left + croped_mask_size-1;
+% 	right_down = min(right_down, 2*effect_area_r_mn);
 	effect_mask(up_left(1):right_down(1),up_left(2):right_down(2)) = croped_mask;
 end
 
-% calculate the combined masks' transmittance matrix
+% [2.2] calculate the combined masks' transmittance matrix
 % start timer
 tic
 dmd_shrink_ratio = mask_spot_r/lens_radius;
 pix_ratio =(dmd_pix_size.*dmd_shrink_ratio) ./ mask_pix_size;
-combined_mask_t = mask_conv(dmd, effect_mask,  pix_ratio);
+
+if pix_ratio*dmd_size<0.2
+	% the shrinked dmd coded spot is 5 times smaller than the mask's pixel
+	% size
+	warning("the shrinked dmd coded spot is too small (5 times smaller than the mask's pixel size)\n")
+	disp('Ctrl-C to stop, or press any key to continue');
+	pause(0.2);
+	dmd_t = sum(dmd,'all')/numel(dmd);
+	combined_mask_t = effect_mask.*dmd_t;
+else
+	combined_mask_t = mask_conv(dmd, effect_mask,  pix_ratio, 'valid');
+end
 
 % crop center area as the sensor's collection
-up_left = round((mask_size - obj_size)./2);
-combined_mask_t = imcrop(combined_mask_t, [up_left obj_size-1]);
+% up_left = round((mask_size - obj_size)./2);
+% combined_mask_t = imcrop(combined_mask_t, [up_left obj_size-1]);
+
 toc
 
 % tmp image

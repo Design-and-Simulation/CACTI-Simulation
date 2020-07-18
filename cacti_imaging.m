@@ -102,7 +102,10 @@ whiteboard_flag = 1;			  % whether the obj is a whiteboard
 
 % paths and names
 % test_name = 'cacti_256_10f';
-test_name = 'center_circle_dmd'; % dmd design test
+% test_name = 'center_circle_dmd'; % dmd design test
+% test_name = 'row_stripe_dmd_256_10f';
+test_name = 'manual_dmd_256_10f';
+
 config_dir = './config/';
 result_dir = './result/tmp/';
 data_name = test_name;
@@ -212,13 +215,14 @@ else
     % dmd
 	% generate dmd
     % dmd_t = 0.5;                            % dmd's transmission rate [standard]
-    % dmd_t = 1;                            % dmd's transmission rate 
     % dmd = binary_mask([sys_params.dmd_size obj_num], dmd_t);     % dmd pattern
     % dmd = binary_mask([sys_params.dmd_size obj_num], 'fixed', 'up_half');  % dmd pattern
     % dmd = binary_mask([sys_params.dmd_size obj_num], 'fixed', 'down_half');  % dmd pattern
 	
 	% load dmd
- 	dmd_name = 'center_circle_dmd_256_10f';
+ 	% dmd_name = 'center_circle_dmd_256_10f';
+ 	% dmd_name = 'row_stripe_dmd_256_10f';
+	dmd_name = 'manual_dmd_256_10f';
     load([config_dir 'dmd/designed_dmd/' dmd_name '.mat']);
 	
 
