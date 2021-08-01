@@ -6,7 +6,7 @@ function dst_mask = mask_enlarge(mask, dst_size)
 % 
 %   Input:
 %   --------
-%   - img:      original image, 2D matrix
+%   - img:      original image, 2D matrix or 3D array([row, col, num])
 % 
 %   - dst_size: size of destination, 2-element int vector or int scalar
 % 
@@ -32,12 +32,12 @@ function dst_mask = mask_enlarge(mask, dst_size)
 %   Info:
 %   --------
 %   Created:    Zhihong Zhang <z_zhi_hong@163.com>, 2020-03-29
-%   Last Modified:   Zhihong Zhang, 2020-03-29
+%   Last Modified:   Zhihong Zhang, 2020-11-25
 %
 %   Copyright (c) 2020 Zhihong Zhang
 
 % input check
-if isvector(dst_size) && numel(dst_size)==2
+if isvector(dst_size)
      if ~isrow(dst_size)
         dst_size = dst_size(:)';
      end
@@ -49,12 +49,17 @@ end
 
 
 % enlarge
-sz_ratio = dst_size./size(mask);
-tmp_mask = kron(mask, ones(floor(sz_ratio)));
-if any(floor(sz_ratio)~=sz_ratio)
-	dst_mask = imresize(tmp_mask, dst_size, 'nearest'); 
-else
-	dst_mask = tmp_mask;
+sz_ratio = dst_size./[size(mask,1),size(mask,2)];
+nmask = size(mask,3);
+dst_mask = zeros([dst_size nmask]);
+
+for	k = 1:nmask
+	tmp_mask = kron(mask(:,:,k), ones(floor(sz_ratio)));
+	if any(floor(sz_ratio)~=sz_ratio)
+		dst_mask(:,:,k) = imresize(tmp_mask, dst_size, 'nearest'); 
+	else
+		dst_mask(:,:,k) = tmp_mask;
+	end
 end
 
 end

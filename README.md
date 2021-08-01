@@ -1,6 +1,8 @@
 # Optical Simulation for CACTI (Coded Aperture Compressive Temporal Imaging) System
 
-This [repository](https://github.com/dawnlh/CACTI) provides a simulation tool for coded aperture compressive temporal imaging based on geometrical optics.
+This repository provides a simulation tool for coded aperture compressive temporal imaging based on geometrical optics.
+
+Maintained by [Zhihong Zhang](https://github.com/dawnlh/)
 
 <img src="./demo/optical_sys.png" alt="CACTI System" style="zoom: 80%;" />
 
@@ -81,8 +83,6 @@ To see the simulation pipeline, you can run "light_propagation.m" and change the
 ## Contact
 
 Zhihong Zhang, Tsinghua University，z_zhi_hong@163.com
-
-Jinli Suo, Tsinghua University，jlsuo@tsinghua.edu.cn
 
 
 
